@@ -31,9 +31,9 @@ safe_filename_re = re.compile("^[a-zA-Z][a-zA-Z0-9_/-]*$")
 
 def get_file_contents(filename, source=False):
 
-    file_path = finders.find(os.path.join("tinymce", f"{filename}.js"))
+    file_path = finders.find(os.path.join("tinymce", "{}.js".format(filename)))
     if not file_path:
-        file_path = finders.find(os.path.join("tinymce", f"{filename}.min.js"))
+        file_path = finders.find(os.path.join("tinymce", "{}.min.js".format(filename)))
 
     try:
         f = open(file_path)
@@ -42,7 +42,7 @@ def get_file_contents(filename, source=False):
         finally:
             f.close()
     except (IOError, TypeError):
-        logger.error(f"Couldn't load file: {file_path} for {filename}")
+        logger.error("Couldn't load file: {} for {}".format(file_path, filename))
         return ""
 
 
@@ -102,28 +102,28 @@ def gzip_compressor(request):
         "base": tinymce.settings.JS_BASE_URL,
         "suffix": "",
     }
-    content.append(f"var tinyMCEPreInit={json.dumps(tinyMCEPreInit)};")
+    content.append("var tinyMCEPreInit={};".format(json.dumps(tinyMCEPreInit)))
 
     # Add core
     files = ["tinymce"]
 
     # Add core languages
     for lang in languages:
-        files.append(f"langs/{lang}")
+        files.append("langs/{}".format(lang))
 
     # Add plugins
     for plugin in plugins:
-        files.append(f"plugins/{plugin}/plugin")
+        files.append("plugins/{}/plugin".format(plugin))
 
         for lang in languages:
-            files.append(f"plugins/{plugin}/langs/{lang}")
+            files.append("plugins/{}/langs/{}".format(plugin, lang))
 
     # Add themes
     for theme in themes:
-        files.append(f"themes/{theme}/theme")
+        files.append("themes/{}/theme".format(theme))
 
         for lang in languages:
-            files.append(f"themes/{theme}/langs/{lang}")
+            files.append("themes/{}/langs/{}".format(theme, lang))
 
     for f in files:
         # Check for unsafe characters
@@ -148,7 +148,7 @@ def gzip_compressor(request):
             try:
                 unicode_content.append(c.decode("utf-8"))
             except Exception:
-                print(f"{files[i]} is nor latin-1 nor utf-8.")
+                print("{} is nor latin-1 nor utf-8.".format(files[i]))
                 raise
 
     # Compress
